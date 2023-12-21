@@ -7,8 +7,8 @@ import { MeetingAppProvider } from "./context/MeetingAppContext";
 
 const App = () => {
   const [token, setToken] = useState("");
-  const [meetingId, setMeetingId] = useState("");
-  const [participantName, setParticipantName] = useState("");
+  const [meetingId, setMeetingId] = useState("rslq-humt-uhth");
+  const [participantName, setParticipantName] = useState("bhumi");
   const [micOn, setMicOn] = useState(true);
   const [webcamOn, setWebcamOn] = useState(true);
   const [selectedMic, setSelectedMic] = useState({ id: null });
