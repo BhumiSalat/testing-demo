@@ -14,12 +14,7 @@ const ConfirmBox = ({
   return (
     <>
       <Transition appear show={open} as={Fragment}>
-        <Dialog
-          style={{ zIndex: 9999 }}
-          as="div"
-          className="relative"
-          onClose={() => {}}
-        >
+        <Dialog as="div" className="relative z-10" onClose={() => {}}>
           <Transition.Child
             as={Fragment}
             enter="ease-out duration-300"
@@ -29,7 +24,7 @@ const ConfirmBox = ({
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <div className="fixed inset-0 bg-black bg-opacity-25" />
+            <div className="fixed inset-0 bg-black bg-opacity-25" /> 
           </Transition.Child>
 
           <div className="fixed inset-0 overflow-y-auto">

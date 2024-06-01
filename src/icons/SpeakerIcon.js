@@ -1,20 +1,16 @@
-import React from "react";
-
-function SpeakerIcon() {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="20"
-      height="21"
-      fill="none"
-      viewBox="0 0 20 21"
-    >
-      <path
-        fill="#fff"
-        d="M11 5.5a1.5 1.5 0 00-3 0v9a1.5 1.5 0 003 0v-9zM6 2.5a1.5 1.5 0 10-3 0v15a1.5 1.5 0 003 0v-15zM16 2.5a1.5 1.5 0 00-3 0v15a1.5 1.5 0 003 0v-15z"
-      ></path>
-    </svg>
-  );
-}
-
+import * as React from "react";
+const SpeakerIcon = (props) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={16}
+    height={16}
+    fill="none"
+    {...props}
+  >
+    <path
+      fill="#fff"
+      d="M8.8 4.19c0-.63-.537-1.142-1.2-1.142-.663 0-1.2.511-1.2 1.142v6.858c0 .63.537 1.143 1.2 1.143.663 0 1.2-.512 1.2-1.143V4.19ZM4.8 1.905c0-.631-.537-1.143-1.2-1.143-.663 0-1.2.512-1.2 1.143v11.428c0 .631.537 1.143 1.2 1.143.663 0 1.2-.512 1.2-1.143V1.905ZM12.8 1.905c0-.631-.537-1.143-1.2-1.143-.663 0-1.2.512-1.2 1.143v11.428c0 .631.537 1.143 1.2 1.143.663 0 1.2-.512 1.2-1.143V1.905Z"
+    />
+  </svg>
+);
 export default SpeakerIcon;

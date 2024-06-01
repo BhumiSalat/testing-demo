@@ -1,43 +1,16 @@
 import { useMeeting, useParticipant } from "@videosdk.live/react-sdk";
-import React, { useMemo, useState } from "react";
-import { toast } from "react-toastify";
-import { useMeetingAppContext } from "../../context/MeetingAppContext";
+import React, { useMemo } from "react";
 import MicOffIcon from "../../icons/ParticipantTabPanel/MicOffIcon";
 import MicOnIcon from "../../icons/ParticipantTabPanel/MicOnIcon";
-import ParticipantRemoveIcon from "../../icons/ParticipantTabPanel/ParticipantRemoveIcon";
 import RaiseHand from "../../icons/ParticipantTabPanel/RaiseHand";
 import VideoCamOffIcon from "../../icons/ParticipantTabPanel/VideoCamOffIcon";
 import VideoCamOnIcon from "../../icons/ParticipantTabPanel/VideoCamOnIcon";
-import { meetingLeftReasons } from "../../utils/common";
-import { nameTructed, trimSnackBarText } from "../../utils/helper";
-import ConfirmBox from "../ConfirmBox";
-
-const ParticipantRemoveButton = ({ setIsParticipantKickoutVisible }) => {
-  return (
-    <>
-      <div>
-        {/* {!isLocal && canRemoveOtherParticipant && ( */}
-        <button
-          className="m-1 p-1"
-          onClick={() => {
-            setIsParticipantKickoutVisible(true);
-          }}
-        >
-          <ParticipantRemoveIcon />
-        </button>
-        {/* )} */}
-      </div>
-    </>
-  );
-};
+import { useMeetingAppContext } from "../../MeetingAppContextDef";
+import { nameTructed } from "../../utils/helper";
 
 function ParticipantListItem({ participantId, raisedHand }) {
-  const { participant, micOn, webcamOn, displayName, isLocal } =
+  const { micOn, webcamOn, displayName, isLocal } =
     useParticipant(participantId);
-  const [isParticipantKickoutVisible, setIsParticipantKickoutVisible] =
-    useState(false);
-  const { canRemoveOtherParticipant, setParticipantLeftReason } =
-    useMeetingAppContext();
 
   return (
     <div className="mt-2 m-2 p-2 bg-gray-700 rounded-lg mb-0">
@@ -65,58 +38,15 @@ function ParticipantListItem({ participantId, raisedHand }) {
         <div className="m-1 p-1">
           {webcamOn ? <VideoCamOnIcon /> : <VideoCamOffIcon />}
         </div>
-
-        {!isLocal && canRemoveOtherParticipant && (
-          <ParticipantRemoveButton
-            setIsParticipantKickoutVisible={setIsParticipantKickoutVisible}
-          />
-        )}
       </div>
-      <ConfirmBox
-        open={isParticipantKickoutVisible}
-        title={`Remove ${nameTructed(displayName, 15)} `}
-        subTitle={`Are you sure want to remove ${nameTructed(
-          displayName,
-          15
-        )} from the call?`}
-        successText={"Remove"}
-        rejectText={"Cancel"}
-        onSuccess={() => {
-          setParticipantLeftReason(meetingLeftReasons.KICKOUT);
-          toast(
-            `${trimSnackBarText(
-              `${nameTructed(
-                participant.displayName,
-                15
-              )} has been kicked out. `
-            )}`,
-            {
-              position: "bottom-left",
-              autoClose: 4000,
-              hideProgressBar: true,
-              closeButton: false,
-              pauseOnHover: true,
-              draggable: true,
-              progress: undefined,
-              theme: "light",
-            }
-          );
-          participant.remove();
-          setIsParticipantKickoutVisible(false);
-        }}
-        onReject={() => {
-          setIsParticipantKickoutVisible(false);
-        }}
-      />
     </div>
   );
 }
 
 export function ParticipantPanel({ panelHeight }) {
+  const { raisedHandsParticipants } = useMeetingAppContext();
   const mMeeting = useMeeting();
   const participants = mMeeting.participants;
-
-  const { raisedHandsParticipants } = useMeetingAppContext();
 
   const sortedRaisedHandsParticipants = useMemo(() => {
     const participantIds = [...participants.keys()];
@@ -171,7 +101,7 @@ export function ParticipantPanel({ panelHeight }) {
           const { raisedHand, participantId: peerId } = part[index];
           return (
             <ParticipantListItem
-              participantId={participantId}
+              participantId={peerId}
               raisedHand={raisedHand}
             />
           );

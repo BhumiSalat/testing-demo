@@ -1,23 +1,18 @@
-import { CameraIcon } from "@heroicons/react/24/solid";
-import { useParticipant, usePubSub } from "@videosdk.live/react-sdk";
-import React, { useEffect, useMemo, useRef, useState, Fragment } from "react";
-import { useMeetingAppContext } from "../context/MeetingAppContext";
-import ImageCapturePreviewDialog from "./ImageCapturePreviewDialog";
-import * as ReactDOM from "react-dom";
+import { Popover, Transition } from "@headlessui/react";
+import { XIcon } from "@heroicons/react/outline";
+import { useParticipant } from "@videosdk.live/react-sdk";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import ReactPlayer from "react-player";
+import { useMediaQuery } from "react-responsive";
 import useIsMobile from "../hooks/useIsMobile";
 import useIsTab from "../hooks/useIsTab";
-import { useMediaQuery } from "react-responsive";
 import useWindowSize from "../hooks/useWindowSize";
 import MicOffSmallIcon from "../icons/MicOffSmallIcon";
-import SpeakerIcon from "../icons/SpeakerIcon";
-import {
-  getQualityScore,
-  nameTructed,
-  participantModes,
-} from "../utils/common";
-import { Popover, Transition } from "@headlessui/react";
 import NetworkIcon from "../icons/NetworkIcon";
-import { XMarkIcon } from "@heroicons/react/24/outline";
+import SpeakerIcon from "../icons/SpeakerIcon";
+import { getQualityScore, nameTructed } from "../utils/common";
+import * as ReactDOM from "react-dom";
+import { useMeetingAppContext } from "../MeetingAppContextDef";
 
 export const CornerDisplayName = ({
   participantId,
@@ -25,8 +20,7 @@ export const CornerDisplayName = ({
   displayName,
   isLocal,
   micOn,
-  screenShareStream,
-  isPip,
+  mouseOver,
   isActiveSpeaker,
 }) => {
   const isMobile = useIsMobile();
@@ -61,9 +55,12 @@ export const CornerDisplayName = ({
     ? 20
     : 18;
 
+  const show = useMemo(() => mouseOver, [mouseOver]);
+
   const {
     webcamStream,
     micStream,
+    screenShareStream,
     getVideoStats,
     getAudioStats,
     getShareStats,
@@ -91,6 +88,7 @@ export const CornerDisplayName = ({
       audioStats = isPresenting ? [] : await getAudioStats();
     }
 
+    // setScore(stats?.score);
     let score = stats
       ? stats.length > 0
         ? getQualityScore(stats[0])
@@ -201,7 +199,7 @@ export const CornerDisplayName = ({
   ];
 
   useEffect(() => {
-    if (webcamStream || micStream) {
+    if (webcamStream || micStream || screenShareStream) {
       updateStats();
 
       if (statsIntervalIdRef.current) {
@@ -219,49 +217,25 @@ export const CornerDisplayName = ({
     return () => {
       if (statsIntervalIdRef.current) clearInterval(statsIntervalIdRef.current);
     };
-  }, [webcamStream, micStream]);
+  }, [webcamStream, micStream, screenShareStream]);
 
   return (
     <>
       <div
-        className={`absolute bottom-2 left-2 rounded-md flex items-center justify-center ${
-          isPip ? "p-1" : "p-2"
-        }`}
+        className="absolute bottom-2 left-2 rounded-md flex items-center justify-center p-2"
         style={{
           backgroundColor: "#00000066",
           transition: "all 200ms",
           transitionTimingFunction: "linear",
+          transform: `scale(${show ? 1 : 0})`,
         }}
       >
         {!micOn && !isPresenting ? (
-          <div
-            style={{
-              padding: isMobile ? 2 : isTab ? 3 : 1,
-              backgroundColor: "#D32F2Fcc",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              borderRadius: 24,
-              marginRight: 6,
-            }}
-          >
-            <MicOffSmallIcon fillcolor="white" />
-          </div>
+          <MicOffSmallIcon fillcolor="white" />
         ) : micOn && isActiveSpeaker ? (
-          <div
-            style={{
-              padding: isMobile ? 2 : isTab ? 3 : 1,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              borderRadius: 24,
-              marginRight: 6,
-            }}
-          >
-            <SpeakerIcon />
-          </div>
+          <SpeakerIcon />
         ) : null}
-        <p className="text-sm text-white">
+        <p className="text-sm text-white ml-0.5">
           {isPresenting
             ? isLocal
               ? `You are presenting`
@@ -275,19 +249,16 @@ export const CornerDisplayName = ({
       {(webcamStream || micStream || screenShareStream) && (
         <div>
           <div
-            style={{
-              position: "absolute",
-              top: isMobile ? 4 : isTab ? 8 : 12,
-              right: isMobile ? 4 : isTab ? 8 : 12,
+            onClick={(e) => {
+              e.stopPropagation();
             }}
+            className="absolute top-2 right-2 rounded-md  p-2 cursor-pointer "
           >
             <Popover className="relative ">
               {({ close }) => (
                 <>
                   <Popover.Button
-                    className={`absolute right-0 top-0 rounded-md flex items-center justify-center ${
-                      isPip ? "p-1" : "p-1.5"
-                    } cursor-pointer`}
+                    className={`absolute right-0 top-0 rounded-md flex items-center justify-center p-1.5 cursor-pointer`}
                     style={{
                       backgroundColor:
                         score > 7
@@ -312,10 +283,8 @@ export const CornerDisplayName = ({
                         color3={"#ffffff"}
                         color4={"#ffffff"}
                         style={{
-                          height:
-                            analyzerSize * (isPip && !isMobile ? 0.4 : 0.6),
-                          width:
-                            analyzerSize * (isPip && !isMobile ? 0.4 : 0.6),
+                          height: analyzerSize * 0.6,
+                          width: analyzerSize * 0.6,
                         }}
                       />
                     </div>
@@ -329,10 +298,7 @@ export const CornerDisplayName = ({
                     leaveFrom="opacity-100 translate-y-0"
                     leaveTo="opacity-0 translate-y-1"
                   >
-                    <Popover.Panel
-                      style={{ zIndex: 999 }}
-                      className="absolute  "
-                    >
+                    <Popover.Panel style={{ zIndex: 999 }} className="absolute">
                       {ReactDOM.createPortal(
                         <div
                           ref={setStatsBoxWidthRef}
@@ -378,7 +344,7 @@ export const CornerDisplayName = ({
                                   close();
                                 }}
                               >
-                                <XMarkIcon
+                                <XIcon
                                   className="text-white"
                                   style={{ height: 16, width: 16 }}
                                 />
@@ -445,12 +411,7 @@ export const CornerDisplayName = ({
   );
 };
 
-function ParticipantView({
-  participantId,
-  showImageCapture,
-  showResolution,
-  isPip,
-}) {
+export function ParticipantView({ participantId }) {
   const {
     displayName,
     webcamStream,
@@ -462,69 +423,9 @@ function ParticipantView({
     isActiveSpeaker,
   } = useParticipant(participantId);
 
-  const isMobile = useIsMobile();
-
-  const { participantMode, cameraFacingMode, setCameraFacingMode } =
-    useMeetingAppContext();
-
-  const isAgent =
-    !!participantMode && participantMode !== participantModes.CLIENT;
-
-  const [participantResolution, setParticipantResolution] = useState("sd");
-
-  const { publish } = usePubSub(`CHANGE_RESOLUTION_${participantId}`, {
-    onMessageReceived: async ({ message }) => {
-      setParticipantResolution({
-        res: message.resolution,
-      });
-    },
-    onOldMessagesReceived: async (messages) => {
-      const newResolution = messages.map(({ message }) => {
-        return { ...message };
-      });
-      newResolution.forEach((res) => {
-        if (res.resolution) {
-          setParticipantResolution({
-            res: res.resolution,
-          });
-        }
-      });
-    },
-  });
-
-  const { publish: switchCameraPublish } = usePubSub(
-    `SWITCH_PARTICIPANT_CAMERA_${participantId}`,
-    {
-      onMessageReceived: async ({ message }) => {
-        setCameraFacingMode({
-          facingMode: message.facingMode,
-        });
-      },
-    }
-  );
-
-  const { publish: imageCaptureUpload } = usePubSub(
-    `IMAGE_CAPTURE_${participantId}`,
-    {
-      onMessageReceived: ({ message }) => {
-        if (message.showImagePreviewDialog && isAgent) {
-          setShowImagePreview(true);
-        }
-      },
-    }
-  );
-
-  const {
-    maintainLandscapeVideoAspectRatio,
-    muteSpeaker,
-    selectedOutputDevice,
-  } = useMeetingAppContext();
-
+  const {selectedSpeaker} = useMeetingAppContext();
   const micRef = useRef(null);
-  const webcamRef = useRef(null);
   const [mouseOver, setMouseOver] = useState(false);
-  const [showImagePreview, setShowImagePreview] = useState(false);
-  const [image, setImage] = useState(null);
 
   useEffect(() => {
     if (micRef.current) {
@@ -532,22 +433,22 @@ function ParticipantView({
         const mediaStream = new MediaStream();
         mediaStream.addTrack(micStream.track);
         micRef.current.srcObject = mediaStream;
-        try {
-          micRef.current.setSinkId(selectedOutputDevice?.id);
-        } catch (error) {
-          console.log("error", error);
+        try{
+          micRef.current.setSinkId(selectedSpeaker.id);
+        }catch(err){
+          console.log("Setting speaker device failed", err);
         }
         micRef.current
           .play()
           .catch((error) =>
-            console.error("videoElem.current.play() failed", error)
+            console.error("micRef.current.play() failed", error)
           );
       } else {
         micRef.current.srcObject = null;
       }
     }
-  }, [micStream, micOn, muteSpeaker, selectedOutputDevice]);
-
+  }, [micStream, micOn,selectedSpeaker]);
+  
   const webcamMediaStream = useMemo(() => {
     if (webcamOn && webcamStream) {
       const mediaStream = new MediaStream();
@@ -555,40 +456,36 @@ function ParticipantView({
       return mediaStream;
     }
   }, [webcamStream, webcamOn]);
-
-  useEffect(() => {
-    if (webcamRef.current && webcamMediaStream) {
-      webcamRef.current.srcObject = webcamMediaStream;
-      webcamRef.current
-        .play()
-        .catch((error) =>
-          console.error("videoElem.current.play() failed", error)
-        );
-    }
-  }, [webcamRef.current, webcamMediaStream]);
-
   return mode === "CONFERENCE" ? (
     <div
-      key={`participant-${participantId}`}
       onMouseEnter={() => {
         setMouseOver(true);
       }}
       onMouseLeave={() => {
         setMouseOver(false);
       }}
-      className={`h-full w-full  bg-gray-750 relative overflow-hidden rounded-lg ${
-        maintainLandscapeVideoAspectRatio ? "video-contain" : "video-cover"
-      }`}
+      className={`h-full w-full  bg-gray-750 relative overflow-hidden rounded-lg video-cover`}
     >
-      <audio id="audio" ref={micRef} autoPlay muted={isLocal || !muteSpeaker} />
-
+      <audio ref={micRef} autoPlay muted={isLocal} />
       {webcamOn ? (
-        <video
-          autoPlay
-          playsInline
-          muted
-          ref={webcamRef}
-          className="w-full h-full"
+        <ReactPlayer
+          //
+          playsinline // very very imp prop
+          playIcon={<></>}
+          //
+          pip={false}
+          light={false}
+          controls={false}
+          muted={true}
+          playing={true}
+          //
+          url={webcamMediaStream}
+          //
+          height={"100%"}
+          width={"100%"}
+          onError={(err) => {
+            console.log(err, "participant video error");
+          }}
         />
       ) : (
         <div className="h-full w-full flex items-center justify-center">
@@ -601,118 +498,6 @@ function ParticipantView({
           </div>
         </div>
       )}
-
-      {!isLocal && isAgent && (
-        <div
-          className={`absolute ${
-            isPip
-              ? "top-0 md:top-2 left-7 md:left-10"
-              : "top-1 md:top-3 left-10 md:left-14"
-          }`}
-        >
-          <div>
-            {[
-              { value: "front", label: "FRONT", res: "h480p_w640p" },
-              { value: "back", label: "BACK", res: "h720p_w1280p" },
-            ].map(({ value, label, res }) =>
-              label === "FRONT" || label === "BACK" ? (
-                <button
-                  className={`inline-flex items-center justify-center ${
-                    isPip ? "px-2 py-0.5" : "px-3 py-1"
-                  } border ${
-                    cameraFacingMode?.facingMode === value
-                      ? "bg-purple-350 border-purple-350"
-                      : "border-gray-100"
-                  }  ${
-                    isPip ? "text-xs" : "text-sm"
-                  } font-medium rounded-sm text-white bg-gray-750`}
-                  onClick={async (e) => {
-                    switchCameraPublish(
-                      {
-                        facingMode: value,
-                        isChangeWebcam: true,
-                      },
-                      {
-                        persist: true,
-                      }
-                    );
-                    e.stopPropagation();
-                  }}
-                >
-                  {label}
-                </button>
-              ) : null
-            )}
-          </div>
-        </div>
-      )}
-
-      {webcamOn && showResolution && (
-        <div
-          className={`absolute ${
-            isPip
-              ? "top-0 md:top-2 right-7 md:right-10"
-              : "top-1 md:top-3 right-10 md:right-14"
-          }`}
-        >
-          <div>
-            {[
-              { value: "sd", label: "SD", res: "h480p_w640p" },
-              { value: "hd", label: "HD", res: "h720p_w1280p" },
-            ].map(({ value, label, res }) =>
-              label === "SD" || label === "HD" ? (
-                <button
-                  className={`inline-flex items-center justify-center ${
-                    isPip ? "px-2 py-0.5" : "px-3 py-1"
-                  } border ${
-                    participantResolution?.res === value
-                      ? "bg-purple-350 border-purple-350"
-                      : "border-gray-100"
-                  }  ${
-                    isPip ? "text-xs" : "text-sm"
-                  } font-medium rounded-sm text-white bg-gray-750`}
-                  onClick={async (e) => {
-                    publish(
-                      {
-                        resolution: value,
-                        resolutionValue: res,
-                      },
-                      {
-                        persist: true,
-                      }
-                    );
-                    e.stopPropagation();
-                  }}
-                >
-                  {label}
-                </button>
-              ) : null
-            )}
-          </div>
-        </div>
-      )}
-      {showImageCapture && !isLocal && !isMobile && (
-        <div
-          className="absolute top-2 left-2 rounded-md flex items-center justify-center p-2 cursor-pointer"
-          style={{
-            backgroundColor: "#00000066",
-          }}
-          onClick={() => {
-            imageCaptureUpload(
-              { showImagePreviewDialog: true },
-              { persist: true }
-            );
-          }}
-        >
-          <CameraIcon className="w-6 h-6 text-white" />
-        </div>
-      )}
-      {showImagePreview && !isLocal && !isMobile && (
-        <ImageCapturePreviewDialog
-          open={showImagePreview}
-          setOpen={setShowImagePreview}
-        />
-      )}
       <CornerDisplayName
         {...{
           isLocal,
@@ -722,21 +507,9 @@ function ParticipantView({
           isPresenting: false,
           participantId,
           mouseOver,
-          isPip,
           isActiveSpeaker,
         }}
       />
     </div>
   ) : null;
 }
-
-export const MemoizedParticipant = React.memo(
-  ParticipantView,
-  (prevProps, nextProps) => {
-    return (
-      prevProps.participantId === nextProps.participantId &&
-      prevProps.showImageCapture === nextProps.showImageCapture &&
-      prevProps.isPip === nextProps.isPip
-    );
-  }
-);

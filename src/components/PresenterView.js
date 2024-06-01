@@ -1,7 +1,6 @@
 import { useMeeting, useParticipant } from "@videosdk.live/react-sdk";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import ReactPlayer from "react-player";
-import { useMeetingAppContext } from "../context/MeetingAppContext";
 import MicOffSmallIcon from "../icons/MicOffSmallIcon";
 import ScreenShareIcon from "../icons/ScreenShareIcon";
 import SpeakerIcon from "../icons/SpeakerIcon";
@@ -15,22 +14,15 @@ export function PresenterView({ height }) {
   const videoPlayer = useRef();
 
   const {
-    webcamOn,
     micOn,
+    webcamOn,
     isLocal,
     screenShareStream,
     screenShareAudioStream,
     screenShareOn,
     displayName,
-    pin,
-    unpin,
-    pinState,
     isActiveSpeaker,
   } = useParticipant(presenterId);
-
-  const { muteSpeaker, selectedOutputDevice } = useMeetingAppContext();
-
-  const [mouseOver, setMouseOver] = useState(false);
 
   const mediaStream = useMemo(() => {
     if (screenShareOn) {
@@ -53,12 +45,6 @@ export function PresenterView({ height }) {
       mediaStream.addTrack(screenShareAudioStream.track);
 
       audioPlayer.current.srcObject = mediaStream;
-      try {
-        audioPlayer.current.setSinkId(selectedOutputDevice?.id);
-      } catch (error) {
-        console.log("error", error);
-      }
-
       audioPlayer.current.play().catch((err) => {
         if (
           err.message ===
@@ -70,46 +56,30 @@ export function PresenterView({ height }) {
     } else {
       audioPlayer.current.srcObject = null;
     }
-  }, [
-    screenShareAudioStream,
-    screenShareOn,
-    isLocal,
-    muteSpeaker,
-    selectedOutputDevice,
-  ]);
+  }, [screenShareAudioStream, screenShareOn, isLocal]);
 
   return (
     <div
-      onMouseEnter={() => {
-        setMouseOver(true);
-      }}
-      onMouseLeave={() => {
-        setMouseOver(false);
-      }}
-      className={`video-cover bg-gray-750 rounded m-2 relative overflow-hidden w-full h-[${
+      className={` bg-gray-750 rounded m-2 relative overflow-hidden w-full h-[${
         height - "xl:p-6 lg:p-[52px] md:p-[26px] p-1"
       }] `}
     >
-      <audio
-        id="audio"
-        autoPlay
-        playsInline
-        controls={false}
-        ref={audioPlayer}
-        muted={isLocal || !muteSpeaker}
-      />
-
+      <audio autoPlay playsInline controls={false} ref={audioPlayer} />
       <div className={"video-contain absolute h-full w-full"}>
         <ReactPlayer
           ref={videoPlayer}
+          //
           playsinline // very very imp prop
           playIcon={<></>}
+          //
           pip={false}
           light={false}
           controls={false}
           muted={true}
           playing={true}
+          //
           url={mediaStream}
+          //
           height={"100%"}
           width={"100%"}
           style={{
@@ -169,12 +139,8 @@ export function PresenterView({ height }) {
                 displayName,
                 micOn,
                 webcamOn,
-                pin,
-                unpin,
-                pinState,
                 isPresenting: true,
                 participantId: presenterId,
-                mouseOver,
                 isActiveSpeaker,
               }}
             />

@@ -1,7 +1,8 @@
 const colors = require("tailwindcss/colors");
 
 module.exports = {
-  content: ["./public/**/*.html", "./src/**/*.{js,ts,jsx,tsx}"],
+  purge: ["./src/**/*.{js,jsx,ts,tsx}", "./public/index.html"],
+  darkMode: false, // or 'media' or 'class'
   mode: "jit",
   theme: {
     colors: {
@@ -11,6 +12,10 @@ module.exports = {
       slate: colors.slate,
       white: colors.white,
       black: colors.black,
+      blue: colors.blue,
+      green: colors.green,
+      red: colors.red,
+      pink: colors.pink,
     },
     extend: {
       fontFamily: {
@@ -36,11 +41,15 @@ module.exports = {
 
       colors: {
         gray: {
+          50: "#555555",
           100: "#FFFFFF",
           150: "#3f4046",
           200: "#EFEFEF",
+          250: "#3F4346",
           300: "#DADADA",
+          350: "#344154",
           400: "#818181",
+          450: "#455A64",
           500: "#6F767E",
           600: "#404B53",
           650: "#202427",
@@ -49,6 +58,7 @@ module.exports = {
           800: "#050A0E",
           850: "#26282C",
           900: "#95959E",
+
         },
         orange: {
           250: "#FF5810",
@@ -66,7 +76,11 @@ module.exports = {
           750: "#6246FB",
           300: "#4658BB",
         },
-        red: { 150: "#D32F2F", 650: "#F44339" },
+        red: { 
+          150: "#D32F2F",
+          250: "#FF6262",
+          650: "#FF5D5D"
+         },
         pink: {
           150: "#EC4899",
           250: "#FFB5B5",
@@ -83,13 +97,15 @@ module.exports = {
         },
         blue: {
           350: "#76d9e6",
-          500: "#5D77FB",
         },
+        
         customGray: {
           100: "#252A34",
           150: "#31353B",
           200: "#1E1E1E",
+          250: "#B4B4B4",
           300: "#454545",
+          350: "#2B303499",
           400: "#282828",
           500: "#848484",
           600: "#C4C4C4",
@@ -104,5 +120,5 @@ module.exports = {
   variants: {
     extend: {},
   },
-  plugins: [require("@tailwindcss/typography")],
+  plugins: [],
 };

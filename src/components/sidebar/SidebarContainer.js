@@ -2,25 +2,24 @@ import { useMeeting } from "@videosdk.live/react-sdk";
 import React, { Fragment } from "react";
 import useIsMobile from "../../hooks/useIsMobile";
 import useIsTab from "../../hooks/useIsTab";
-import { XMarkIcon } from "@heroicons/react/24/outline";
+import { XIcon } from "@heroicons/react/outline";
 import { ChatPanel } from "./ChatPanel";
 import { ParticipantPanel } from "./ParticipantPanel";
 import { Dialog, Transition } from "@headlessui/react";
 import { useMediaQuery } from "react-responsive";
-import { useMeetingAppContext } from "../../context/MeetingAppContext";
+import { useMeetingAppContext } from "../../MeetingAppContextDef";
 
 const SideBarTabView = ({
   height,
   sideBarContainerWidth,
   panelHeight,
-  sideBarMode,
-  raisedHandsParticipants,
   panelHeaderHeight,
   panelHeaderPadding,
   panelPadding,
   handleClose,
 }) => {
   const { participants } = useMeeting();
+  const { sideBarMode } = useMeetingAppContext();
 
   return (
     <div
@@ -67,15 +66,12 @@ const SideBarTabView = ({
                   onClick={handleClose}
                   style={{ margin: 0, padding: 0 }}
                 >
-                  <XMarkIcon className="h-5 w-5" />
+                  <XIcon className="h-5 w-5" />
                 </button>
               </div>
             )}
             {sideBarMode === "PARTICIPANTS" ? (
-              <ParticipantPanel
-                panelHeight={panelHeight}
-                raisedHandsParticipants={raisedHandsParticipants}
-              />
+              <ParticipantPanel panelHeight={panelHeight} />
             ) : sideBarMode === "CHAT" ? (
               <ChatPanel panelHeight={panelHeight} />
             ) : null}
@@ -86,13 +82,9 @@ const SideBarTabView = ({
   );
 };
 
-export function SidebarConatiner({
-  height,
-  sideBarContainerWidth,
-  raisedHandsParticipants,
-}) {
-  const { sideBarMode, setSideBarMode } = useMeetingAppContext();
-
+export function SidebarConatiner({ height, sideBarContainerWidth }) {
+  const { raisedHandsParticipants, sideBarMode, setSideBarMode } =
+    useMeetingAppContext();
   const isMobile = useIsMobile();
   const isTab = useIsTab();
   const isLGDesktop = useMediaQuery({ minWidth: 1024, maxWidth: 1439 });
@@ -158,12 +150,11 @@ export function SidebarConatiner({
           >
             <div className="fixed inset-0 overflow-y-hidden">
               <div className="flex h-screen items-center justify-center text-center">
-                <Dialog.Panel className="w-screen h-screen transform overflow-hidden bg-gray-800 shadow-xl transition-all">
+                <Dialog.Panel className="w-screen transform overflow-hidden bg-gray-800 shadow-xl transition-all">
                   <SideBarTabView
                     height={"100%"}
                     sideBarContainerWidth={"100%"}
                     panelHeight={height}
-                    sideBarMode={sideBarMode}
                     raisedHandsParticipants={raisedHandsParticipants}
                     panelHeaderHeight={panelHeaderHeight}
                     panelHeaderPadding={panelHeaderPadding}
@@ -181,13 +172,11 @@ export function SidebarConatiner({
         height={paddedHeight}
         sideBarContainerWidth={sideBarContainerWidth}
         panelHeight={paddedHeight - panelHeaderHeight - panelHeaderPadding}
-        sideBarMode={sideBarMode}
         raisedHandsParticipants={raisedHandsParticipants}
         panelHeaderHeight={panelHeaderHeight}
         panelHeaderPadding={panelHeaderPadding}
         panelPadding={panelPadding}
         handleClose={handleClose}
-        setSideBarMode={setSideBarMode}
       />
     )
   ) : (

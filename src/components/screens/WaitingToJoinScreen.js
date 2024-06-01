@@ -47,6 +47,7 @@ const WaitingToJoinScreen = () => {
         alignItems: "center",
         justifyContent: "center",
         height: "100vh",
+        // backgroundColor: theme.palette.darkTheme.main,
       }}
     >
       <div className="flex flex-col">

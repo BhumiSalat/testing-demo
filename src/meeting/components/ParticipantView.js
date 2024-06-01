@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { useMeeting } from "@videosdk.live/react-sdk";
 import { MemoizedParticipantGrid } from "../../components/ParticipantGrid";
 
-function ParticipantsViewer({ isPresenting, sideBarMode }) {
+function ParticipantsViewer({ isPresenting }) {
   const {
     participants,
     pinnedParticipants,
@@ -12,21 +12,17 @@ function ParticipantsViewer({ isPresenting, sideBarMode }) {
     presenterId,
   } = useMeeting();
 
-  const isMobile = window.matchMedia(
-    "only screen and (max-width: 768px)"
-  ).matches;
-
   const participantIds = useMemo(() => {
     const pinnedParticipantId = [...pinnedParticipants.keys()].filter(
       (participantId) => {
-        return participantId != localParticipant.id;
+        return participantId !== localParticipant.id;
       }
     );
     const regularParticipantIds = [...participants.keys()].filter(
       (participantId) => {
         return (
           ![...pinnedParticipants.keys()].includes(participantId) &&
-          localParticipant.id != participantId
+          localParticipant.id !== participantId
         );
       }
     );
@@ -35,7 +31,7 @@ function ParticipantsViewer({ isPresenting, sideBarMode }) {
       localParticipant.id,
       ...pinnedParticipantId,
       ...regularParticipantIds,
-    ].slice(0, isPresenting ? (isMobile ? 2 : 6) : 16);
+    ].slice(0, isPresenting ? 6 : 16);
 
     if (activeSpeakerId) {
       if (!ids.includes(activeSpeakerId)) {
@@ -55,7 +51,6 @@ function ParticipantsViewer({ isPresenting, sideBarMode }) {
     <MemoizedParticipantGrid
       participantIds={participantIds}
       isPresenting={isPresenting}
-      sideBarMode={sideBarMode}
     />
   );
 }
@@ -63,10 +58,7 @@ function ParticipantsViewer({ isPresenting, sideBarMode }) {
 const MemorizedParticipantView = React.memo(
   ParticipantsViewer,
   (prevProps, nextProps) => {
-    return (
-      prevProps.sideBarMode === nextProps.sideBarMode &&
-      prevProps.isPresenting === nextProps.isPresenting
-    );
+    return prevProps.isPresenting === nextProps.isPresenting;
   }
 );
 

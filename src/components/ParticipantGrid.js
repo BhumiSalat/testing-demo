@@ -1,27 +1,22 @@
 import React from "react";
-import { useMediaQuery } from "react-responsive";
-import { useMeetingAppContext } from "../context/MeetingAppContext";
-import { participantModes } from "../utils/common";
-import { MemoizedParticipant } from "./ParticipantView";
-import { PromoInfographic } from "./PromoInfographic";
+import { useMeetingAppContext } from "../MeetingAppContextDef";
+import { ParticipantView } from "./ParticipantView";
 
-function ParticipantGrid({ participantIds, isPresenting, sideBarMode }) {
+const MemoizedParticipant = React.memo(
+  ParticipantView,
+  (prevProps, nextProps) => {
+    return prevProps.participantId === nextProps.participantId;
+  }
+);
+
+function ParticipantGrid({ participantIds, isPresenting }) {
+  const { sideBarMode } = useMeetingAppContext();
   const isMobile = window.matchMedia(
     "only screen and (max-width: 768px)"
   ).matches;
 
-  const gtThanMD = useMediaQuery({ minWidth: 768 });
-
-  const { participantMode } = useMeetingAppContext();
-
   const perRow =
     isMobile || isPresenting
-      ? participantIds.length < 4
-        ? 1
-        : participantIds.length < 9
-        ? 2
-        : 3
-      : !gtThanMD
       ? participantIds.length < 4
         ? 1
         : participantIds.length < 9
@@ -39,13 +34,6 @@ function ParticipantGrid({ participantIds, isPresenting, sideBarMode }) {
       ? 4
       : 4;
 
-  if (
-    participantIds.length == 1 &&
-    participantMode === participantModes.CLIENT
-  ) {
-    participantIds.push("NULL");
-  }
-
   return (
     <div
       className={`flex flex-col md:flex-row flex-grow m-3 items-center justify-center ${
@@ -60,18 +48,14 @@ function ParticipantGrid({ participantIds, isPresenting, sideBarMode }) {
           : "md:px-0"
       }`}
     >
-      <div
-        className={`flex ${
-          isPresenting && isMobile ? "flex-row" : "flex-col"
-        } w-full h-full`}
-      >
+      <div className="flex flex-col w-full h-full">
         {Array.from(
           { length: Math.ceil(participantIds.length / perRow) },
           (_, i) => {
             return (
               <div
                 key={`participant-${i}`}
-                className={`flex flex-1  ${
+                className={`flex flex-1 ${
                   isPresenting
                     ? participantIds.length === 1
                       ? "justify-start items-start"
@@ -85,22 +69,12 @@ function ParticipantGrid({ participantIds, isPresenting, sideBarMode }) {
                     return (
                       <div
                         key={`participant_${participantId}`}
-                        className={`flex flex-1  ${
+                        className={`flex flex-1 ${
                           isPresenting
                             ? participantIds.length === 1
                               ? "md:h-48 md:w-44 xl:w-52 xl:h-48 "
                               : participantIds.length === 2
-                              ? `${
-                                  isPresenting && isMobile
-                                    ? "w-36 h-full md:w-44 xl:w-56 md:h-full"
-                                    : "md:w-44 xl:w-56"
-                                } `
-                              : participantIds.length === 3
-                              ? `${
-                                  isPresenting && isMobile
-                                    ? "w-36 h-full md:w-44 xl:w-48 md:h-full"
-                                    : "md:w-44 xl:w-48"
-                                } `
+                              ? "md:w-44 xl:w-56"
                               : "md:w-44 xl:w-48"
                             : "w-full"
                         } items-center justify-center h-full ${
@@ -109,19 +83,7 @@ function ParticipantGrid({ participantIds, isPresenting, sideBarMode }) {
                             : "md:max-w-lg 2xl:max-w-2xl"
                         } overflow-clip overflow-hidden  p-1`}
                       >
-                        {participantId == "NULL" ? (
-                          <PromoInfographic />
-                        ) : (
-                          <MemoizedParticipant
-                            participantId={participantId}
-                            showImageCapture={
-                              participantMode == participantModes.AGENT
-                            }
-                            showResolution={
-                              true //participantMode == participantModes.AGENT
-                            }
-                          />
-                        )}
+                        <MemoizedParticipant participantId={participantId} />
                       </div>
                     );
                   })}
@@ -140,8 +102,7 @@ export const MemoizedParticipantGrid = React.memo(
     return (
       JSON.stringify(prevProps.participantIds) ===
         JSON.stringify(nextProps.participantIds) &&
-      prevProps.isPresenting === nextProps.isPresenting &&
-      prevProps.sideBarMode === nextProps.sideBarMode
+      prevProps.isPresenting === nextProps.isPresenting
     );
   }
 );

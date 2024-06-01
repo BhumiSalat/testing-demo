@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Lottie from "lottie-react";
 import { createPopper } from "@popperjs/core";
 
@@ -6,25 +6,31 @@ const OutlineIconTextButton = ({
   onClick,
   isFocused,
   bgColor,
+  Icon,
   focusBGColor,
   disabled,
   renderRightComponent,
+  fillcolor,
   lottieOption,
   tooltipTitle,
   btnID,
   buttonText,
   large,
+  isRequestProcessing,
   textColor,
 }) => {
   const [mouseOver, setMouseOver] = useState(false);
+  const [mouseDown, setMouseDown] = useState(false);
+  const [blinkingState, setBlinkingState] = useState(1);
   const [tooltipShow, setTooltipShow] = useState(false);
 
   const btnRef = useRef();
   const tooltipRef = useRef();
+  const intervalRef = useRef();
 
   const openTooltip = () => {
     createPopper(btnRef.current, tooltipRef.current, {
-      placement: "top",
+      placement: "bottom",
     });
     setTooltipShow(true);
   };
@@ -33,6 +39,32 @@ const OutlineIconTextButton = ({
   };
 
   const iconSize = 22 * (large ? 1 : 1);
+
+  const startBlinking = () => {
+    intervalRef.current = setInterval(() => {
+      setBlinkingState((s) => (s === 1 ? 0.4 : 1));
+    }, 600);
+  };
+
+  const stopBlinking = () => {
+    clearInterval(intervalRef.current);
+
+    setBlinkingState(1);
+  };
+
+  useEffect(() => {
+    if (isRequestProcessing) {
+      startBlinking();
+    } else {
+      stopBlinking();
+    }
+  }, [isRequestProcessing]);
+
+  useEffect(() => {
+    return () => {
+      stopBlinking();
+    };
+  }, []);
 
   return (
     <>
@@ -49,6 +81,11 @@ const OutlineIconTextButton = ({
               ? "border-2 border-transparent border-solid"
               : "border-2 border-solid border-[#ffffff33]"
           } md:m-2 m-1 cursor-pointer`}
+          style={{
+            transition: "all 200ms",
+            transitionTimingFunction: "ease-in-out",
+            opacity: blinkingState,
+          }}
           id={btnID}
           onMouseEnter={() => {
             setMouseOver(true);
@@ -56,10 +93,24 @@ const OutlineIconTextButton = ({
           onMouseLeave={() => {
             setMouseOver(false);
           }}
+          onMouseDown={() => {
+            setMouseDown(true);
+          }}
+          onMouseUp={() => {
+            setMouseDown(false);
+          }}
           disabled={disabled}
           onClick={onClick}
         >
-          <div className="flex items-center justify-center p-1 m-1 rounded-lg overflow-hidden">
+          <div
+            className="flex items-center justify-center p-1 m-1 rounded-lg overflow-hidden"
+            style={{
+              opacity: disabled ? 0.7 : 1,
+              transform: `scale(${mouseOver ? (mouseDown ? 0.97 : 1.05) : 1})`,
+              transition: `all ${200 * 1}ms`,
+              transitionTimingFunction: "linear",
+            }}
+          >
             {buttonText ? (
               lottieOption ? (
                 <div className="flex items-center justify-center">
@@ -93,8 +144,6 @@ const OutlineIconTextButton = ({
                       ? "text-[#1c1f2e]"
                       : textColor
                       ? textColor
-                      : disabled
-                      ? "text-gray-500"
                       : "text-white"
                   }`}
                 >
@@ -110,7 +159,7 @@ const OutlineIconTextButton = ({
       <div
         style={{ zIndex: 999 }}
         className={`${
-          tooltipShow && tooltipTitle ? "" : "hidden"
+          tooltipShow ? "" : "hidden"
         } overflow-hidden flex flex-col items-center justify-center pt-1`}
         ref={tooltipRef}
       >
